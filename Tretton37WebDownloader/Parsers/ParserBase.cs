@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
+using System.Net;
 
 namespace Tretton37WebDownloader
 {
@@ -19,10 +20,12 @@ namespace Tretton37WebDownloader
         /// <param name="ResourceUrls"></param>
        public void DownloadResources(List<string> ResourceUrls)
         {
+          
            Parallel.ForEach(ResourceUrls ,(currentResourceUrl) => {
                try
                {
-                   WebCrawler.DownloadFile(currentResourceUrl);
+                  
+                   WebCrawler.DownloadResourceFile(currentResourceUrl);
                }
                catch (Exception e)
                {

@@ -44,7 +44,7 @@ namespace Tretton37WebDownloader
                  styleFiles = _doc.DocumentNode.SelectNodes(SCRIPT_XPATH);
                  if (styleFiles != null)
                  {
-                     Parallel.ForEach(styleFiles, (styleFile) =>
+                     foreach( var styleFile in styleFiles)
                      {
                          if (styleFile != null)
                          {
@@ -89,7 +89,7 @@ namespace Tretton37WebDownloader
                          }
                       
                          Thread.Sleep(500);
-                     });
+                     };
                  }
                
                 //foreach (var item in scriptfiles)

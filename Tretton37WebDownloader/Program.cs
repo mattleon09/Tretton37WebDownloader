@@ -20,7 +20,7 @@ namespace Tretton37WebDownloader
         static void Main(string[] args)
         {
           //  string paramURL = args[0]; 
-            string str = "http://www.tretton37.com";  //Need to make sure any url passed into the function has http/https;
+            string str = "https://www.tretton37.com";  //Need to make sure any url passed into the function has http/https;
 
             Console.WriteLine("By default, the program will save the contents to 'C:\\tretton37\\'");
             Stopwatch stopWatch = new Stopwatch();

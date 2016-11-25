@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Net;
 using System.IO;
 using System.Threading;
+using System.Diagnostics;
+using System.IO.Compression;
 
 
 
@@ -85,7 +87,9 @@ namespace Tretton37WebDownloader
                     AnchorParser linkParser = new AnchorParser();
                     linkParser.Parse(wPage);
 
+                   
                     ParseResourceFilesAndLinks(wPage);
+                   
 
                     if (linkParser.ResourceLinks.Count > 0)
                     {
@@ -120,45 +124,32 @@ namespace Tretton37WebDownloader
             }      
         }
 
+            /// <summary>
+            /// Function that gets the HTML content from the passed in URL if possible. 
+            /// Then, saves the page as an html file on the disk. 
+            /// Finally, it returns that HTML data.
+            /// </summary>
+            /// <param name="Url"></param>
+            /// <returns></returns>
         private string GetWebString(string Url)
         {
 
-            Thread.Sleep(1000);
+            Thread.Sleep(500);
             string filePath = string.Empty;
-            string pageName = string.Empty;
-            if (Url.IndexOf(HTTP_PREFIX) > -1 || Url.IndexOf(HTTPS_PREFIX) > -1)
-                if (Url != WebCrawler.startingWebUrl)
-                    if (Url.Contains(HTML_EXTENSION))
-                    {
-                        pageName = Url.Substring(Url.LastIndexOf(FORWARD_SLASH_STR) + 1, Url.Length - Url.LastIndexOf(FORWARD_SLASH_STR) - 1);//Url.
-                    }
-                    else
-                    {
-                        pageName = Url.Substring(Url.LastIndexOf(FORWARD_SLASH_STR) + 1, Url.Length - Url.LastIndexOf(FORWARD_SLASH_STR) - 1) + HTML_EXTENSION;//Url.
-                    }
-                else
-                    pageName = MAIN_PAGE_NAME;
-
-            else
-            {
-                pageName = Url.Replace("\"", string.Empty);
-                pageName = pageName.Replace(FORWARD_SLASH_STR, string.Empty);
-                if (!(pageName.Split('.').Count() > 1))
-                    pageName = pageName + HTML_EXTENSION;
-                Url = startingWebUrl + Url;
-            }
-
-            if (pageName == HTML_EXTENSION)
-                pageName = MAIN_PAGE_NAME;
-
-            foreach (WebPage page in pages)
-            {
-                if (page.PageUrl == Url)
-                    return null;
-            }
-
+            string pageHtmlName = string.Empty;
             string strResponse = string.Empty;
+          
+            Uri uri = new Uri(Url);
 
+            var currentPage = uri.Segments.Last().Replace("/", ""); 
+          
+                if (currentPage != string.Empty)
+                    if (Url.Contains(HTML_EXTENSION))              
+                        pageHtmlName = currentPage;           
+                    else                  
+                        pageHtmlName = currentPage + HTML_EXTENSION;
+                else
+                    pageHtmlName = MAIN_PAGE_NAME;
             try
             {
                 HttpWebRequest wrWebRequest = WebRequest.Create(Url) as HttpWebRequest;
@@ -168,12 +159,9 @@ namespace Tretton37WebDownloader
                 using (srResponse = new StreamReader(wrWebResponse.GetResponseStream()))
                 {
                     strResponse = srResponse.ReadToEnd(); //srResponse.ReadToEndAsync();
-
-                    if (!File.Exists(TRETTON37_ROOT_FILESYSTEM_PATH + pageName))
-                    {
-                        File.WriteAllText(TRETTON37_ROOT_FILESYSTEM_PATH + pageName, strResponse);
-                    }
-                    // File.Delete(TRETTON37_ROOT_FILESYSTEM_PATH + pageName);
+                    new Thread(() =>
+                          DownloadHtmlPage(TRETTON37_ROOT_FILESYSTEM_PATH + pageHtmlName, strResponse)
+                    ).Start();
                 }
             }
             catch (Exception e)
@@ -181,10 +169,6 @@ namespace Tretton37WebDownloader
                 Console.WriteLine("An error occured while trying to get data from {0}", Url, e.Message);
             }
           
-            
-       
-
-        
             return strResponse;
         }
 
@@ -234,10 +218,11 @@ namespace Tretton37WebDownloader
         /// Download the file from the  passed in resource url. 
         /// </summary>
         /// <param name="resourceUrl"></param>
-        public static void DownloadFile(string resourceUrl)
+        public static void DownloadResourceFile(string resourceUrl)
         {
+         
             //Ignore cdn links. 
-            if (resourceUrl != string.Empty && !resourceUrl.Contains(CDN_IDENTIFIER))
+            if (resourceUrl != null &&resourceUrl != string.Empty && !resourceUrl.Contains(CDN_IDENTIFIER))
             {
                 string path = WebCrawler.TRETTON37_ROOT_FILESYSTEM_PATH;
 
@@ -273,14 +258,30 @@ namespace Tretton37WebDownloader
                        if (!File.Exists(path)) { 
                           // File.Delete(path);
 
-                       //Download the file using WebClient
-                       WebClient wc = new WebClient();
-                       wc.DownloadFile(resourceUrl, path);
-                       Thread.Sleep(1000);
+                       //Download the file 
+                           using (var wc = new WebClient())
+                           {
+                               wc.Proxy = WebRequest.DefaultWebProxy;
+                               byte[] data = wc.DownloadData(resourceUrl);
+                               File.WriteAllBytes(path, data);
+                           }
+                       Thread.Sleep(10);
                         }
                    }
                }        
             }
+        }
+
+     
+
+        public static void DownloadHtmlPage(string path, string response)
+        {
+            if (!File.Exists(path))
+            {
+                File.WriteAllText(path, response);
+            }
+             // File.Delete(TRETTON37_ROOT_FILESYSTEM_PATH + pageName);
+                
         }
 
         /// <summary>
@@ -289,8 +290,7 @@ namespace Tretton37WebDownloader
         /// <param name="wPage"></param>
         private void ParseAndDowloadScriptFiles(WebPage wPage)
         {
-          //  Console.WriteLine("Parsing all of the script elements with 'JS' files paths...");
-            ScriptParser scriptParser = new ScriptParser();
+              ScriptParser scriptParser = new ScriptParser();
             scriptParser.Parse(wPage);
            
 
@@ -304,6 +304,7 @@ namespace Tretton37WebDownloader
                 scriptParser.DownloadResources(scriptParser.ResourceLinks);
                 
             }
+          
         }
 
         /// <summary>
@@ -312,20 +313,14 @@ namespace Tretton37WebDownloader
         /// <param name="wPage"></param>
         private void ParseAndDownloadStyleFiles(WebPage wPage)
         {
-         //   Console.WriteLine("Parsing all of the css style links...");
             StyleParser cssParser = new StyleParser();
              cssParser.Parse(wPage);
-           
-
+         
             if (cssParser.ResourceLinks.Count > 0)
-            {
-           //  Console.WriteLine("Downloading css files for page {0}", wPage.PageUrl);
-             cssParser.DownloadResources(cssParser.ResourceLinks);
-            cssParser.DownloadResources(cssParser.InnerStyleLinks);
-          
-            }
-
-        
+            {        
+             cssParser.DownloadResources(cssParser.ResourceLinks);          
+             cssParser.DownloadResources(cssParser.InnerStyleLinks);        
+            }    
         }
 
         /// <summary>
@@ -334,17 +329,29 @@ namespace Tretton37WebDownloader
         /// <param name="wPage"></param>
         private void ParseAndDownloadImages(WebPage wPage)
         {
-         //   Console.WriteLine("Parsing all of the image elements for their source urls...");
+           
             ImageParser imageParser = new ImageParser();
             imageParser.Parse(wPage);
           
 
             if (imageParser.ResourceLinks.Count > 0)
             {
-           //     Console.WriteLine("Downloading image files for page {0}", wPage.PageUrl);
                 imageParser.DownloadResources(imageParser.ResourceLinks);
               
             }
+          
         }
+
+          
     }
+
+        class MyWebClient : WebClient
+        {
+            protected override WebRequest GetWebRequest(Uri address)
+            {
+                HttpWebRequest request = base.GetWebRequest(address) as HttpWebRequest;
+                request.AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip;
+                return request;
+            }
+        }
 }
