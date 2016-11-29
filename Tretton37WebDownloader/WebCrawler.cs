@@ -95,8 +95,9 @@ namespace Tretton37WebDownloader
                     if (linkParser.ResourceLinks.Count > 0)
                     {
                         //Get a copy of the resource/internal links of the current page. 
-                        var copyGlobal = linkParser.ResourceLinks.ToList(); 
-                        var diff = linkParser.ResourceLinks.Except(crawledPages).ToList();//Get the links that haven't been parsed/crawled yet. 
+                        var copyGlobal = linkParser.ResourceLinks.ToList();
+                        var copyCrawledPages = crawledPages;
+                        var diff = linkParser.ResourceLinks.Except(copyCrawledPages).ToList();//Get the links that haven't been parsed/crawled yet. 
                         if (diff.Count > 0)
                         {       
                             Console.WriteLine("Crawling all of the internal links found on the page: {0}... \n", urlPath);
@@ -229,7 +230,8 @@ namespace Tretton37WebDownloader
         /// <returns></returns>
         private static bool PageHasBeenCrawled(string url)
         {
-            foreach (string pageUrl in crawledPages)
+            var copyCrawledPages = crawledPages;
+            foreach (string pageUrl in copyCrawledPages)
             {
                 if (pageUrl == url) //If the current iteration's url matches one in the pages collection, then the page has already been parsed. 
                     return true;
