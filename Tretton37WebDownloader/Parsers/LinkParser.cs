@@ -29,34 +29,37 @@ namespace Tretton37WebDownloader
            
         }
 
-        public void Parse(WebPage page)
+        public void Parse(string htmlContent)
         {
 
             HtmlNodeCollection linkPaths = null;
 
-            _doc.LoadHtml(page.HtmlContent);
+            _doc.LoadHtml(htmlContent);
             try
             {
-                linkPaths = _doc.DocumentNode.SelectNodes(LINK_XPATH);
+                linkPaths = _doc.DocumentNode.SelectNodes(LINK_XPATH); //Select all of the anchor tags with the 'href' attribute. 
               //  Console.WriteLine("Link paths found!. Verifying and collecting...");
 
-                if (linkPaths != null)
+                if (linkPaths != null) //If there are some...
                 {
-                    Parallel.ForEach(linkPaths, (item) =>
+                    //Iterate through linkPaths using Parrallel programming.
+                    //This is to try and concurrently grab  the urls within the href attributes. 
+                    Parallel.ForEach(linkPaths, (item) =>   
                     {
                         if (item != null)
                         {
-                            var href = item.Attributes[WebCrawler.HREF_HTML_ATTRIBUTE].Value;
+                            var href = item.Attributes[WebCrawler.HREF_HTML_ATTRIBUTE].Value; //Get the contents within the 'href' attribute. 
 
                             if (href != null && href != string.Empty)
                             {
                                 var path = new Uri(_baseUri, href).AbsoluteUri;
-                                if (path.Count(x => x == WebCrawler.FORWARD_SLASH_CHAR) >= 4)
+                                //I did this to avoid duplicate/similar url paths. Ex. "/join" and "/join/"
+                                if (path.Count(x => x == WebCrawler.FORWARD_SLASH_CHAR) >= 4) 
                                 {
                                     var last = path.LastIndexOf(WebCrawler.FORWARD_SLASH_CHAR);
                                     path = path.Substring(0, last);
                                 }
-                                if (!path.Contains(WebCrawler.MAILTO_LINKS) && !path.Contains(WebCrawler.TELEPHONE_LINKS))
+                                if (!path.Contains(WebCrawler.MAILTO_LINKS) && !path.Contains(WebCrawler.TELEPHONE_LINKS)) //Leave out email and phone links
                                 {
                                     if (!path.Contains(WebCrawler.POUND_SYMBOL_CHAR)) //Avoid sub-sections of pages
                                     {

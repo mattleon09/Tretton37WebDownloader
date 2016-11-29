@@ -23,10 +23,10 @@ namespace Tretton37WebDownloader
             string str = "https://www.tretton37.com";  //Need to make sure any url passed into the function has http/https;
 
             Console.WriteLine("By default, the program will save the contents to 'C:\\tretton37\\'");
-            Stopwatch stopWatch = new Stopwatch();
+            Stopwatch stopWatch = new Stopwatch(); //Instantiate a stopwatch object to keep track of the running time. 
             stopWatch.Start();
-            webCrawler = new WebCrawler(str);
-            webCrawler.TraverseTretton37sSite();
+            webCrawler = new WebCrawler(str); //Instantiate a new instance of WebCrawler. 
+            webCrawler.TraverseTretton37sSite(); //Call the  initial method. 
 
             stopWatch.Stop();
             TimeSpan ts = stopWatch.Elapsed;

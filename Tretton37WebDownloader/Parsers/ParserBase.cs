@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using System.Net;
+using System.Linq;
 
 namespace Tretton37WebDownloader
 {
@@ -33,6 +34,10 @@ namespace Tretton37WebDownloader
                }
     
            });
+
+           var diff = ResourceUrls.Except(WebCrawler.globalDownloadedList).ToList();
+           if (diff.Count > 0)
+               WebCrawler.globalDownloadedList.AddRange(diff);
         }
     }
 }

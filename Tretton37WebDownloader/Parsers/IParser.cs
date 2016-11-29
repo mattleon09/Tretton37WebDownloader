@@ -17,7 +17,7 @@ namespace Tretton37WebDownloader
         /// 
         /// </summary>
         /// <param name="page"></param>
-        void Parse(WebPage page);
+        void Parse(string page);
 
     }
 }

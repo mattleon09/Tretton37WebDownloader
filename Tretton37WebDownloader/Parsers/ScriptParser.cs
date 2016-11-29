@@ -28,10 +28,10 @@ namespace Tretton37WebDownloader
 
         }
 
-        public void Parse(WebPage page)
+        public void Parse(string htmlContent)
         {
             HtmlNodeCollection scriptfiles = null;
-            _doc.LoadHtml(page.HtmlContent);
+            _doc.LoadHtml(htmlContent);
               try
             {
                 //Hmm..I originally had SelectNodes(..).ToList(); But I kept getting a null reference exception since at least on element returned in the collection was null.

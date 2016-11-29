@@ -22,11 +22,11 @@ namespace Tretton37WebDownloader
             set { _imageLinks = value; }
         }
 
-        public void Parse(WebPage page)
+        public void Parse(string  htmlContent)
         {
 
             HtmlNodeCollection imageFiles = null;
-            _doc.LoadHtml(page.HtmlContent);
+            _doc.LoadHtml(htmlContent);
          
             try
             {
@@ -34,6 +34,7 @@ namespace Tretton37WebDownloader
                 imageFiles = _doc.DocumentNode.SelectNodes(IMAGE_XPATH); 
                 if (imageFiles != null)
                 {
+              
                     Parallel.ForEach(imageFiles, (imageFile) =>
                     {
                         if (imageFile != null)

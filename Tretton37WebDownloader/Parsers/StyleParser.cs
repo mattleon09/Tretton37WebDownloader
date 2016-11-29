@@ -35,10 +35,10 @@ namespace Tretton37WebDownloader
 
         }
 
-        public void Parse(WebPage page)
+        public void Parse(string htmlContent)
         {
             HtmlNodeCollection styleFiles = null;
-            _doc.LoadHtml(page.HtmlContent);
+            _doc.LoadHtml(htmlContent);
             try
             {
                  styleFiles = _doc.DocumentNode.SelectNodes(SCRIPT_XPATH);
@@ -63,6 +63,7 @@ namespace Tretton37WebDownloader
                                              {
                                                  WebClient wc = new WebClient();
                                                  var css = wc.DownloadString(csslink);
+                                                 //Find "url" or "import"
                                                  Regex cssUrls = new Regex(@"(url|@import)\((?<char>['""])?(?<url>.*?)\k<char>?\)", RegexOptions.IgnoreCase); //Get all url properties in the css. 
 
                                                  foreach (Match match in cssUrls.Matches(css))
